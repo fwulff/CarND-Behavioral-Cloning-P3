@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jan 31 17:59:35 2017
+
+@author: florian
+"""
+
+# Dataset visualization and augmentation
+
+# Import all libraries
+
+import pandas as pd
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from skimage.exposure import adjust_gamma
+from scipy.misc import imresize
+
+# read original file
+data = pd.read_csv('./data/data/driving_log.csv')
+    
+# create histogram of steering angles
+# histogram = data.steering.hist(bins=25)
+# histogram.plot()
+print(data.describe())
+
+# Percentage between 0 and 100
+delete_prob = 80
+
+index_array = []
+# delete steering angles of 0. to reduce bias towards straight driving
+
+for index in range(len(data)):
+    if (data.steering[index] == 0.):
+        rand_prob = np.random.randint(0,100)
+        if rand_prob <= delete_prob:
+            index_array.append(index)
+
+data = data.drop(index_array)
+
+# delete all entries with 0. angle
+# data = data[data.steering != 0.]
+
+print("Number of entries deleted: ", len(index_array))
+
+# delete steering angles of >0.5 or <-0.5 to reduce oversteering
+data = data[data.steering < 0.5]
+data = data[data.steering > -0.5]
+
+# create histogram of steering angles
+histogram_new = data.steering.hist(bins=25)
+histogram_new.plot()
+print(data.describe())
+
+#write to new file
+data.to_csv('./data/data/driving_log_new.csv')
